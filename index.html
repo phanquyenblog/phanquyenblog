@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phan Quyen Blog</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --text: #333333;
+            --gray: #7f8c8d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* HEADER & SEARCH */
+        header { background: var(--primary); color: var(--white); padding: 30px 20px; text-align: center; }
+        .logo { font-size: 26px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; cursor: pointer; }
+        .search-box { width: 100%; max-width: 500px; margin: 0 auto; }
+        .search-box input { width: 100%; padding: 12px 20px; border-radius: 4px; border: none; font-size: 16px; outline: none; }
+
+        /* NAVIGATION: Responsive */
+        nav {
+            background: var(--white);
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+        nav::-webkit-scrollbar { display: none; }
+        
+        @media (min-width: 768px) { nav { justify-content: center; } }
+
+        .nav-item { padding: 15px 20px; font-weight: 600; color: var(--gray); cursor: pointer; }
+        .nav-item.active { color: var(--accent); border-bottom: 3px solid var(--accent); }
+
+        /* MAIN */
+        main { max-width: 800px; margin: 20px auto; padding: 0 15px; min-height: 70vh; }
+        .post-card { background: var(--white); border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; }
+        .post-card img { width: 100%; height: 220px; object-fit: cover; }
+        .post-card-body { padding: 20px; }
+        .post-card-body span { font-size: 11px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
+        .post-card-body h2 { font-size: 19px; margin-top: 5px; color: var(--primary); }
+
+        /* READER MODE */
+        #reader { display: none; background: var(--white); padding: 35px; border-radius: 12px; }
+        .back-btn { display: inline-block; margin-bottom: 25px; padding: 10px 20px; background: var(--primary); color: var(--white); border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        .article-title { font-size: 28px; line-height: 1.3; color: var(--primary); margin-bottom: 10px; }
+        .article-meta { font-size: 13px; color: var(--gray); margin-bottom: 25px; }
+        
+        /* Cấu trúc Phan Quyen */
+        .hook-section { font-size: 18px; font-style: italic; color: #444; border-left: 5px solid var(--accent); padding-left: 20px; margin-bottom: 30px; }
+        .summary-box { background: #fcfcfc; padding: 25px; border-radius: 8px; border: 1px dashed #ccc; margin-bottom: 30px; }
+        .summary-box h4 { color: #d35400; margin-bottom: 12px; text-transform: uppercase; font-size: 14px; }
+        
+        .article-img { display: block; max-width: 100%; max-height: 400px; margin: 30px auto; border-radius: 8px; object-fit: contain; }
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; margin: 30px 0; border-radius: 8px; overflow: hidden; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+        .tinh-tuy-section { background: #eef7ff; padding: 25px; border-radius: 10px; border-left: 5px solid #3498db; margin-bottom: 30px; }
+        .tinh-tuy-section h4 { color: #21618c; margin-bottom: 10px; }
+
+        .cta-section { margin-top: 40px; padding-top: 25px; border-top: 1px solid #eee; font-weight: 600; color: var(--primary); }
+        .source-tag { font-size: 12px; color: var(--gray); margin-top: 15px; }
+
+        /* SEARCH RESULTS */
+        .no-result { text-align: center; padding: 60px 20px; }
+        .no-result h3 { color: var(--gray); margin-bottom: 20px; }
+
+        footer { background: #f1f1f1; text-align: center; padding: 50px 20px; font-size: 14px; margin-top: 40px; }
+        footer a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div id="ui-nav">
+    <header>
+        <div class="logo" onclick="goHome()">Phan Quyen</div>
+        <div class="search-box">
+            <input type="text" id="searchBar" placeholder="Tìm kiếm bài viết..." onkeyup="searchPosts()">
+        </div>
+    </header>
+    <nav id="navCategories"></nav>
+</div>
+
+<main>
+    <div id="post-list"></div>
+    <div id="reader">
+        <div class="back-btn" onclick="goHome()">← QUAY LẠI</div>
+        <div id="article-view"></div>
+    </div>
+</main>
+
+<footer>
+    <p>© 2026 <b>Phan Quyen Blog</b>.</p>
+    <p>Liên hệ: <a href="mailto:hi.phanquyen@hotmail.com">hi.phanquyen@hotmail.com</a> | <a href="mailto:phanquyen@duck.com">phanquyen@duck.com</a></p>
+</footer>
+
+<script>
+    const newsData = [
+        {
+            id: 10, cat: "Góc nhìn cá nhân",
+            t: "Công an xã và quyền hạn xử lý nồng độ cồn xe đạp: Hiểu sao cho đúng?",
+            hook: "Trong những ngày Tết, việc di chuyển bằng xe đạp sau khi có chút men rượu bia là thói quen của nhiều người. Tuy nhiên, ranh giới pháp lý về quyền hạn xử phạt của Công an xã lại là điều tôi thấy nhiều bạn đọc còn trăn trở.",
+            img: "https://media-cdn-v2.laodong.vn/storage/newsportal/2026/2/20/1657953/Kiem-Tra.jpeg?w=800",
+            summary: "Theo Nghị định 168/2024/NĐ-CP, Trưởng Công an xã có quyền xử phạt nhiều lỗi vi phạm giao thông với xe đạp nhưng hành vi về nồng độ cồn lại không nằm trong danh mục trực tiếp. Dẫu vậy, nếu trong quá trình xử lý các lỗi khác mà phát hiện nồng độ cồn, họ vẫn có quyền lập biên bản báo cáo cấp trên xử phạt.",
+            tinhTuy: "Tôi nhận ra rằng dù Công an xã có trực tiếp phạt hay không, thì việc siết chặt kỷ cương giao thông từ cấp cơ sở là cần thiết. Pháp luật sinh ra không phải để làm khó, mà để bảo vệ sự an toàn của chúng ta sau mỗi cuộc vui.",
+            cta: "Tôi luôn chọn cách 'đã uống thì không lái', dù là xe thô sơ. Còn quan điểm của bạn về vấn đề này thế nào?",
+            source: "Báo Lao Động", date: "20/02/2026"
+        },
+        {
+            id: 1, cat: "Ghi chép mỗi ngày",
+            t: "Ranh giới của trải nghiệm: Suy ngẫm từ câu chuyện Cua Quỷ",
+            hook: "Sáng nay, khi đọc về sự ra đi của một vlogger trẻ trên ZNews, tôi chợt nhận ra chúng ta đang sống trong một thời đại mà sự tò mò đôi khi lấn át cả bản năng tự vệ.",
+            img: "https://photo.znews.vn/w660/Uploaded/rfkbflu/2026_02_12/emma_amit_021126_1_d22b726a070c4.jpg",
+            summary: "Câu chuyện về một cô gái tử vong sau khi thử món cua lạ chứa độc tố Tetrodotoxin. Đây không chỉ là một tai nạn ẩm thực, mà là bài học đắt giá về kiến thức sinh tồn cơ bản.",
+            tinhTuy: "Tôi tự hỏi, cái giá của một nội dung 'độc lạ' có đáng để đánh đổi bằng mạng sống? Sự hiểu biết chính là rào chắn cuối cùng giúp chúng ta tận hưởng thế giới một cách an toàn.",
+            cta: "Hy vọng chúng ta sẽ luôn đặt giá trị bản thân lên trên những xu hướng nhất thời. Bạn nghĩ sao về điều này?",
+            source: "ZNews", date: "12/02/2026"
+        },
+        {
+            id: 2, cat: "Góc nhìn cá nhân",
+            t: "Văn hóa đỗ xe tại TP. Vinh: Khi cái tôi lớn hơn sự tử tế",
+            hook: "Nhìn những chiếc xe chặn đầu nhau giữa phố Vinh ngày đầu năm, tôi tự hỏi tại sao chúng ta lại chọn cách đối đầu thay vì đối thoại.",
+            img: "https://cdnphoto.dantri.com.vn/dX6Giaj8Gt-t4F1FiZfkBBYRQwU=/thumb_w/1360/2026/02/13/xe-chan-dau-duoinghe-anhoang-lam-cropped-1770969099728.jpg",
+            summary: "Mâu thuẫn bùng phát từ việc đỗ xe chắn lối, dẫn đến việc các chủ xe trả đũa nhau bằng cách khóa đường, gây ùn tắc và tạo nên hình ảnh không mấy đẹp đẽ.",
+            tinhTuy: "Tôi tin rằng một mẩu giấy để lại số điện thoại cùng lời xin lỗi sẽ giải quyết vấn đề nhanh hơn nhiều so với sự nóng nảy lấn át lý trí.",
+            cta: "Nếu đặt mình vào vị trí của họ, tôi sẽ chọn cách bao dung hơn. Còn bạn?",
+            source: "Dân Trí", date: "13/02/2026"
+        },
+        {
+            id: 3, cat: "Chuyện thường nhật",
+            t: "Phép màu trên chuyến xe Tết: Nơi lòng tốt được sưởi ấm",
+            hook: "Có những câu chuyện khiến tôi tin rằng cuộc đời này vẫn rất đáng sống, như cách mọi người cùng chung tay giúp đỡ một người xa lạ bị mất tiền trên chuyến xe về quê.",
+            img: "https://img.youtube.com/vi/5PTIhHiIJDI/maxresdefault.jpg",
+            summary: "Anh công nhân mất sạch số tiền tích góp nhưng vẫn chọn cách im lặng vì lòng tự trọng. Đáp lại, những người đồng hành trên chuyến xe ấy đã viết nên một kết thúc có hậu cho anh.",
+            tinhTuy: "Sự tử tế không nhất thiết phải ồn ào. Khi chúng ta chọn sống bao dung, thế giới tự khắc sẽ trở nên dịu dàng hơn.",
+            cta: "Một hành động nhỏ có thể thay đổi cả một ngày của ai đó. Hãy cùng tôi lan tỏa điều này nhé.",
+            source: "VTV Times", date: "14/02/2026", embed: "5PTIhHiIJDI"
+        },
+        {
+            id: 4, cat: "Góc nhìn cá nhân",
+            t: "Cạm bẫy lòng tốt: Khi tình yêu thú cưng bị đem ra trục lợi",
+            hook: "Tôi cảm thấy thực sự phẫn nộ khi biết về hành vi tàn nhẫn của một chủ lò mổ tại Hà Đông, kẻ đã núp bóng tình thương để đòi tiền chuộc 'con trẻ' với giá cắt cổ.",
+            img: "https://nqs.1cdn.vn/2026/02/12/316B_mc1.jpg",
+            summary: "Bé Sữa - chú mèo gắn bó suốt 3 năm của một bạn sinh viên đã bị kẻ xấu lừa bắt vào lò mổ. Đáng ghê tởm hơn, kẻ này thường lập tài khoản mạng xã hội đóng vai người cứu trợ để xin thú cưng về rồi đòi tiền chuộc lên đến hàng triệu đồng.",
+            tinhTuy: "Sự việc của Bé Sữa không chỉ là chuyện tiền bạc, mà là lời cảnh báo về sự biến tướng của lòng tham núp bóng đạo đức. Tôi khuyên mọi người hãy luôn giữ một 'sự hoài nghi cần thiết' trước những lời mời cứu trợ online không rõ ràng.",
+            cta: "Đừng để lòng tốt bị kẻ xấu lợi dụng. Bạn có cách nào để bảo vệ thú cưng tốt hơn không?",
+            source: "Tin tức tổng hợp", date: "10/02/2026"
+        },
+        {
+            id: 8, cat: "Chuyện thường nhật",
+            t: "Câu chuyện nải chuối triệu đồng: Khi giá trị nằm ở niềm tin",
+            hook: "Một nải chuối xanh bình thường có thể giá bạc triệu? Nghe có vẻ vô lý nhưng đó lại là câu chuyện thực tế về thị trường Tết vừa qua mà tôi quan sát được.",
+            img: "https://media-cdn-v2.laodong.vn/storage/newsportal/2026/2/15/1656629/Z7536520087900_27E0d.jpg",
+            summary: "Tại các khu chợ miền Bắc, những nải chuối lá có số quả lẻ như 19 hoặc 21 quả được săn đón với giá từ 800.000đ đến hơn 1 triệu đồng. Quan niệm chọn số lẻ để cầu may mắn đã đẩy giá trị vật chất lên cao vượt mức bình thường.",
+            tinhTuy: "Theo tôi, đây là sự giao thoa kỳ lạ giữa đức tin và kinh tế thị trường. Chúng ta không mua chuối để ăn, chúng ta mua một lời cầu nguyện cho năm mới bình an, và cái giá đó đôi khi khó có thể định lượng bằng tiền.",
+            cta: "Bạn có sẵn sàng chi tiền triệu cho một biểu tượng may mắn như thế này không?",
+            source: "Ghi chép thị trường", date: "20/02/2026"
+        },
+        {
+            id: 9, cat: "Góc nhìn cá nhân",
+            t: "Nghị định 342: Cuộc chiến chống lại 'rác quảng cáo'",
+            hook: "Tôi vừa dành thời gian nghiên cứu Nghị định 342/2025/NĐ-CP và cảm thấy đây thực sự là một tin vui cho người dùng mạng Việt Nam từ năm 2026.",
+            img: "https://cdn.pixabay.com/photo/2020/05/18/16/17/social-media-5187243_640.png",
+            summary: "Quy định mới buộc các nền tảng phải cho phép tắt quảng cáo sau 5 giây và siết chặt quyền riêng tư. Đây là bước ngoặt lớn cho trải nghiệm số của chúng ta.",
+            tinhTuy: "Tôi coi đây là một 'bàn tay sắt' cần thiết. Quyền được yên tĩnh và quyền riêng tư của chúng ta cần được pháp luật bảo vệ một cách nghiêm túc.",
+            cta: "Tôi mong chờ ngày quy định này đi vào đời sống. Bạn có cùng quan điểm với tôi không?",
+            source: "Thư Viện Pháp Luật", date: "19/02/2026"
+        }
+    ];
+
+    const categories = ["Tất cả", "Chuyện thường nhật", "Góc nhìn cá nhân", "Ghi chép mỗi ngày"];
+    let filteredData = [...newsData];
+
+    function renderPosts(items) {
+        const list = document.getElementById('post-list');
+        list.innerHTML = "";
+        if (items.length === 0) {
+            list.innerHTML = `<div class="no-result"><h3>Không tìm thấy nội dung.</h3><button class="back-btn" onclick="goHome()">Quay lại</button></div>`;
+            return;
+        }
+        items.forEach(item => {
+            list.innerHTML += `
+                <div class="post-card" onclick="openArticle(${item.id})">
+                    <img src="${item.img}">
+                    <div class="post-card-body">
+                        <span>${item.cat}</span>
+                        <h2>${item.t}</h2>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function renderNav() {
+        const nav = document.getElementById('navCategories');
+        nav.innerHTML = categories.map(c => `<div class="nav-item" onclick="filterCat('${c}', this)">${c}</div>`).join('');
+        nav.firstChild.classList.add('active');
+    }
+
+    function filterCat(cat, el) {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        el.classList.add('active');
+        filteredData = cat === "Tất cả" ? newsData : newsData.filter(d => d.cat === cat);
+        renderPosts(filteredData);
+    }
+
+    function searchPosts() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        const res = filteredData.filter(d => d.t.toLowerCase().includes(query) || d.summary.toLowerCase().includes(query));
+        renderPosts(res);
+    }
+
+    function openArticle(id) {
+        const p = newsData.find(d => d.id === id);
+        document.getElementById('ui-nav').style.display = 'none';
+        document.getElementById('post-list').style.display = 'none';
+        const reader = document.getElementById('reader');
+        reader.style.display = 'block';
+        
+        let media = p.embed ? `<div class="video-container"><iframe src="https://www.youtube.com/embed/${p.embed}" allowfullscreen></iframe></div>` : `<img src="${p.img}" class="article-img">`;
+
+        document.getElementById('article-view').innerHTML = `
+            <h1 class="article-title">${p.t}</h1>
+            <p class="article-meta">Phan Quyen | ${p.date}</p>
+            <div class="hook-section">${p.hook}</div>
+            <div class="summary-box"><h4>📌 Tóm tắt góc nhìn</h4><p>${p.summary}</p></div>
+            ${media}
+            <div class="tinh-tuy-section"><h4>💡 Góc nhìn Tinh Túy</h4><p>${p.tinhTuy}</p></div>
+            <div class="cta-section">
+                <p>${p.cta}</p>
+                <p class="source-tag">Nguồn tham khảo: ${p.source}</p>
+            </div>`;
+        window.scrollTo(0,0);
+    }
+
+    function goHome() {
+        document.getElementById('ui-nav').style.display = 'block';
+        document.getElementById('post-list').style.display = 'block';
+        document.getElementById('reader').style.display = 'none';
+        document.getElementById('searchBar').value = "";
+        renderPosts(newsData);
+    }
+
+    window.onload = () => { renderNav(); renderPosts(newsData); };
+</script>
+</body>
+</html>
